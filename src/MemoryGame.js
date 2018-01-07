@@ -1,61 +1,54 @@
 import React, { Component } from 'react';
 import './MemoryGame.css';
 
-//Array of memory images
-const ImagePieces = ['cat', 'cat', 'dog', 'dog', 'horse', 'horse',
- 'pig', 'pig', 'snake', 'snake', 'fish', 'fish'];
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-let tempCheckArr = [];
-
 class MemoryGame extends Component {
   constructor(props) {
     super(props);
+    //Array of memory images
+    this.ImagePieces = ['cat', 'cat', 'dog', 'dog', 'horse', 'horse',
+    'pig', 'pig', 'snake', 'snake', 'fish', 'fish'];
+    this.tempCheckArr = [];
     this.state = {
-      showImg: ['hidden', 'hidden', 'hidden', 'hidden', 'hidden', 'hidden', 'hidden',
-       'hidden', 'hidden', 'hidden', 'hidden', 'hidden'],
+      showImg: Array(this.ImagePieces.length).fill('hidden'),
       divClick: true,
       compareImgArr: [],
       counter: 0
-    }
+    }   
     this.checkMatch = this.checkMatch.bind(this);
   }
 
   //Shuffle memory game images
   componentWillMount() {
-    shuffleArray(ImagePieces);
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          let j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+    shuffleArray(this.ImagePieces);
   }
 
   //Check for match function
   checkMatch(key, e) {
-
     //For later hidding images purposes
-    tempCheckArr.push(key.toString());
+    this.tempCheckArr.push(key.toString());
 
-    //Add image src to state (compareImgArr), for later compare
+    //Create copy of (compareImgArr) and add img src, for later compare
     const imgSrc = e.target.firstChild.src;
-    const compareImgArr = this.state.compareImgArr;
-
+    const compareImgArr = [...this.state.compareImgArr];
     compareImgArr.push(imgSrc);
-
-    //Counter for block user click memory after unhidding two pieces
-    this.setState({
-      compareImgArr: compareImgArr,
-      counter: this.state.counter + 1
-    });
 
     //Set current clicked item as 'visible' in main array 'showImg'
     const arr = this.state.showImg
     arr[key] = 'visible';
+
+    //Update state, counter for block user click method
+    //after unhidding two pieces
     this.setState({
-      showImg: arr
+      showImg: arr,
+      compareImgArr: compareImgArr,
+      counter: this.state.counter + 1
     });
 
     //Check if 2 items are clicked - if yes - disable clicking
@@ -63,23 +56,24 @@ class MemoryGame extends Component {
       this.setState({
         divClick: false
       });
-
       //Check if pictures are matching
-      if (this.state.compareImgArr[0] === this.state.compareImgArr[1]) {
-        tempCheckArr = [];
+      if (compareImgArr[0] === compareImgArr[1]) {
+        this.tempCheckArr = [];
         this.setState({
           compareImgArr: [],
           divClick: true
         });
       } else {
-        //If pictures not match take them back to hidden
+        //If pictures not match turn them back to hidden
         var tempArr = this.state.showImg
-        var firstElement = parseInt(tempCheckArr[0]);
-        var secondElement = parseInt(tempCheckArr[1]);
+        // eslint-disable-next-line
+        var firstElement = parseInt(this.tempCheckArr[0]);
+        // eslint-disable-next-line
+        var secondElement = parseInt(this.tempCheckArr[1]);
         setTimeout(()=>{
           tempArr[firstElement] = 'hidden';
           tempArr[secondElement] = 'hidden';
-          tempCheckArr = [];
+          this.tempCheckArr = [];
           this.setState({
             showImg: tempArr,
             compareImgArr: [],
@@ -88,7 +82,6 @@ class MemoryGame extends Component {
         }, 1500)
       }
     }
-
   }
 
   render() {
@@ -96,12 +89,12 @@ class MemoryGame extends Component {
       <div>
         <h1>Memory Game</h1>
         <div className="mui-panel wrapper">
-          {ImagePieces.map((text, i) => {
+          {this.ImagePieces.map((text, i) => {
             return (
               <div key={i} className="modal mui-panel" 
                 onClick={this.state.divClick ? (e) => this.checkMatch(i, e) : undefined}>
                   <img style={{visibility: this.state.showImg[i]}} src={'./'+text+'.jpg'}
-                  srcSet={'./'+text+'_lrg.jpg 1000w'} key={i} alt="Game Element"></img>
+                  srcSet={'./'+text+'_lrg.jpg 1000w'} key={i} alt="Game Element"/>
               </div>
             )
           })}
